@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from copy import deepcopy
-from trackeval.utils import TrackEvalException
-from trackeval.datasets._BaseDataset import _BaseDataset
+from ..utils import TrackEvalException
+from ._base_dataset import _BaseDataset
 
 class SMOT4SBDataset(_BaseDataset):
     def __init__(self, config=None):
