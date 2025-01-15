@@ -108,8 +108,7 @@ def write_summary_results(summaries, cls, output_folder):
 
 def replace_column_names_for_so_hota(cls, output_folder):
     # Load and modify CSV file manually
-    csv_file = os.path.join(output_folder, cls + '_summary.csv')
-    updated_csv_file = csv_file.replace(".csv", "_updated.csv")
+    csv_file = os.path.join(output_folder, cls + '_detailed.csv')
 
     with open(csv_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
@@ -120,15 +119,14 @@ def replace_column_names_for_so_hota(cls, output_folder):
         rows[0] = [col.replace("Dets", "SO-Dets").replace("IDs", "SO-IDs") for col in rows[0]]
 
     # Save updated CSV
-    with open(updated_csv_file, 'w', newline='', encoding='utf-8') as file:
+    with open(csv_file, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerows(rows)
     
-    print(f"Updated CSV saved as: {updated_csv_file}")
+    print(f"Updated CSV saved as: {csv_file}")
 
     # Process TXT file manually
     txt_file = os.path.join(output_folder, cls + '_summary.txt')
-    updated_txt_file = txt_file.replace(".txt", "_updated.txt")
 
     with open(txt_file, 'r', encoding='utf-8') as file:
         lines = file.readlines()
@@ -138,10 +136,10 @@ def replace_column_names_for_so_hota(cls, output_folder):
         lines[0] = lines[0].replace("Dets", "SO-Dets").replace("IDs", "SO-IDs")
 
     # Save updated TXT
-    with open(updated_txt_file, 'w', encoding='utf-8') as file:
+    with open(txt_file, 'w', encoding='utf-8') as file:
         file.writelines(lines)
 
-    print(f"Updated TXT saved as: {updated_txt_file}")
+    print(f"Updated TXT saved as: {txt_file}")
 
 def write_detailed_results(details, cls, output_folder):
     """Write detailed results to file"""
