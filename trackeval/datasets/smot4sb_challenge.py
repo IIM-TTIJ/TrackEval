@@ -278,7 +278,7 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         return raw_data
         
     @staticmethod
-    def _calculate_box_dot_distance(self, bboxes1, bboxes2, S, box_format='xywh'):
+    def _calculate_box_dot_distance(self, bboxes1, bboxes2, box_format='xywh'):
         """Calculates Dot Distance (DotD) between two sets of bounding boxes."""
         if self.S is None:
             raise TrackEvalException("Dataset-wide S has not been computed. Call compute_S_for_dataset() first.")
@@ -300,7 +300,7 @@ class SMOT4SBChallenge(MotChallenge2DBox):
             raise TrackEvalException(f'Invalid box_format: {box_format}')
 
         dist_matrix = np.linalg.norm(centers1[:, np.newaxis, :] - centers2[np.newaxis, :, :], axis=2)
-        dotd_scores = np.exp(-dist_matrix / S)  # Use S instead of fixed sigma
+        dotd_scores = np.exp(-dist_matrix / self.S)  # Use S instead of fixed sigma
 
         return dotd_scores
 
