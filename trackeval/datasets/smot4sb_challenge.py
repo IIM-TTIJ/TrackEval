@@ -38,6 +38,12 @@ class SMOT4SBChallenge(MotChallenge2DBox):
             'SKIP_SPLIT_FOL': False,  # If False, data is in GT_FOLDER/BENCHMARK-SPLIT_TO_EVAL/ and in
                                       # TRACKERS_FOLDER/BENCHMARK-SPLIT_TO_EVAL/tracker/
                                       # If True, then the middle 'benchmark-split' folder is skipped for both.
+            'USE_SO_HOTA': True, # SO-HOTA differs from conventional IoU-based tracking metrics because 
+                                 # it is calculated based on DotD. Accordingly, basic metrics such as 
+                                 # 'IDTP', 'IDFN', 'IDFP', 'Dets', 'IDs', etc. will also change. 
+                                 # In order to separate the results computed in different ways, when using SO-HOTA, 
+                                 # it is necessary not only to create the evaluation indicator class, 
+                                 # but also to create a separate instance of this class after setting this flag.
         }
         return default_config
 
@@ -125,9 +131,10 @@ class SMOT4SBChallenge(MotChallenge2DBox):
                         raise TrackEvalException(
                             'Tracker file not found: ' + tracker + '/' + self.tracker_sub_fol + '/' + os.path.basename(
                                 curr_file))
-        
-        self.S = None  # Dataset-wide normalization factor for DotD
-        self.compute_S_for_dataset()  # Caliculate normalization factor S for DotD
+        self.use_so_hota = USE_SO_HOTA
+        if self.use_so_hota:
+            self.S = None  # Dataset-wide normalization factor for DotD
+            self.compute_S_for_dataset()  # Caliculate normalization factor S for DotD
         
     @staticmethod
     def compute_S_for_dataset(self):
@@ -293,7 +300,7 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         return data
 
     @_timing.time
-    def get_raw_seq_data(self, tracker, seq, use_so_hota=False):
+    def get_raw_seq_data(self, tracker, seq):
         """ Loads raw data (tracker and ground-truth) for a single tracker on a single sequence.
         Raw data includes all of the information needed for both preprocessing and evaluation, for all classes.
         A later function (get_processed_seq_data) will perform such preprocessing and extract relevant information for
@@ -326,14 +333,14 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         similarity_scores_iou = []
         similarity_scores_dotd = []
         for t, (gt_dets_t, tracker_dets_t) in enumerate(zip(raw_data['gt_dets'], raw_data['tracker_dets'])):
-            if use_so_hota:
+            if self.use_so_hota:
                 dotds = self._calculate_similarities_dotd(gt_dets_t, tracker_dets_t)
                 similarity_scores_dotd.append(dotds)
             else:
                 ious = self._calculate_similarities(gt_dets_t, tracker_dets_t)
                 similarity_scores_iou.append(ious)
 
-        if use_so_hota:
+        if self.use_so_hota:
             raw_data['similarity_scores'] = similarity_scores_dotd  # DotD based evaluation
         else:
             raw_data['similarity_scores'] = similarity_scores_iou  # IoU based evaluation

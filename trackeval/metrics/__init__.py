@@ -1,4 +1,5 @@
 from .hota import HOTA
+from .so_hota import SO_HOTA
 from .clear import CLEAR
 from .identity import Identity
 from .count import Count
