@@ -68,7 +68,6 @@ class SMOT4SBChallenge(MotChallenge2DBox):
             self.S = None  # Dataset-wide normalization factor for DotD
             self.compute_S_for_dataset()  # Caliculate normalization factor S for DotD
         
-    @staticmethod
     def compute_S_for_dataset(self):
         """Compute the normalization factor S from ground truth bounding boxes across the entire dataset."""
         all_wh = []
