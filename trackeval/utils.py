@@ -3,6 +3,7 @@ import os
 import csv
 import argparse
 from collections import OrderedDict
+import pandas as pd
 
 
 def init_config(config, default_config, name=None):
@@ -85,7 +86,9 @@ def write_summary_results(summaries, cls, output_folder):
     # metric family is called, and within each family either in the order they were added to the dict (python >= 3.6) or
     # randomly (python < 3.6).
     default_order = ['HOTA', 'DetA', 'AssA', 'DetRe', 'DetPr', 'AssRe', 'AssPr', 'LocA', 'OWTA', 'HOTA(0)', 'LocA(0)',
-                     'HOTALocA(0)', 'MOTA', 'MOTP', 'MODA', 'CLR_Re', 'CLR_Pr', 'MTR', 'PTR', 'MLR', 'CLR_TP', 'CLR_FN',
+                     'HOTALocA(0)', 'SO-HOTA', 'SO-DetA', 'SO-AssA', 'SO-DetRe', 'SO-DetPr', 'SO-AssRe', 'SO-AssPr', 
+                     'SO-LocA', 'SO-OWTA', 'SO-HOTA(0)', 'SO-LocA(0)', 'SO-HOTALocA(0)',
+                     'MOTA', 'MOTP', 'MODA', 'CLR_Re', 'CLR_Pr', 'MTR', 'PTR', 'MLR', 'CLR_TP', 'CLR_FN',
                      'CLR_FP', 'IDSW', 'MT', 'PT', 'ML', 'Frag', 'sMOTA', 'IDF1', 'IDR', 'IDP', 'IDTP', 'IDFN', 'IDFP',
                      'Dets', 'GT_Dets', 'IDs', 'GT_IDs']
     default_ordered_dict = OrderedDict(zip(default_order, [None for _ in default_order]))
@@ -104,6 +107,34 @@ def write_summary_results(summaries, cls, output_folder):
         writer.writerow(fields)
         writer.writerow(values)
 
+def replace_column_names_for_so_hota(cls, output_folder):
+    # Load CSV file
+    csv_file = os.path.join(output_folder, cls + '_summary.csv')
+
+    df = pd.read_csv(csv_file)
+    
+    # Rename columns in CSV
+    df.rename(columns={'Dets': 'SO-Dets', 'IDs': 'SO-IDs'}, inplace=True)
+    
+    # Save updated CSV
+    updated_csv_file = csv_file.replace(".csv", "_updated.csv")
+    df.to_csv(updated_csv_file, index=False)
+    print(f"Updated CSV saved as: {updated_csv_file}")
+
+    # Process TXT file
+    txt_file = os.path.join(output_folder, cls + '_summary.txt')
+    with open(txt_file, 'r') as file:
+        lines = file.readlines()
+
+    # Replace column names in TXT file (assuming first line contains headers)
+    updated_lines = [lines[0].replace("Dets", "SO-Dets").replace("IDs", "SO-IDs")] + lines[1:]
+
+    # Save updated TXT
+    updated_txt_file = txt_file.replace(".txt", "_updated.txt")
+    with open(updated_txt_file, 'w') as file:
+        file.writelines(updated_lines)
+    
+    print(f"Updated TXT saved as: {updated_txt_file}")
 
 def write_detailed_results(details, cls, output_folder):
     """Write detailed results to file"""
@@ -119,7 +150,6 @@ def write_detailed_results(details, cls, output_folder):
                 continue
             writer.writerow([seq] + sum([list(s[seq].values()) for s in details], []))
         writer.writerow(['COMBINED'] + sum([list(s['COMBINED_SEQ'].values()) for s in details], []))
-
 
 def load_detail(file):
     """Loads detailed data for a tracker."""

@@ -183,6 +183,9 @@ class Evaluator:
                                 utils.write_summary_results(summaries, c_cls, output_fol)
                             if config['OUTPUT_DETAILED']:
                                 utils.write_detailed_results(details, c_cls, output_fol)
+                            if hasattr(dataset, 'use_so_hota'): 
+                                if dataset.use_so_hota:
+                                    utils.replace_column_names_for_so_hota(c_cls, output_fol)
 
                     # Output for returning from function
                     output_res[dataset_name][tracker] = res
