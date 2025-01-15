@@ -63,7 +63,7 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         #                                'occluder_on_ground': 10, 'occluder_full': 11, 'reflection': 12, 'crowd': 13}
         # self.valid_class_numbers = list(self.class_name_to_class_id.values())
 
-        self.use_so_hota = USE_SO_HOTA
+        self.use_so_hota = self.config['USE_SO_HOTA']
         if self.use_so_hota:
             self.S = None  # Dataset-wide normalization factor for DotD
             self.compute_S_for_dataset()  # Caliculate normalization factor S for DotD
