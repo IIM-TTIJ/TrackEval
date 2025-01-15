@@ -210,16 +210,15 @@ class Evaluator:
 
         return output_res, output_msg
 
+    @_timing.time
+    def eval_sequence(seq, dataset, tracker, class_list, metrics_list, metric_names):
+        """Function for evaluating a single sequence"""
 
-@_timing.time
-def eval_sequence(seq, dataset, tracker, class_list, metrics_list, metric_names):
-    """Function for evaluating a single sequence"""
-
-    raw_data = dataset.get_raw_seq_data(tracker, seq)
-    seq_res = {}
-    for cls in class_list:
-        seq_res[cls] = {}
-        data = dataset.get_preprocessed_seq_data(raw_data, cls)
-        for metric, met_name in zip(metrics_list, metric_names):
-            seq_res[cls][met_name] = metric.eval_sequence(data)
-    return seq_res
+        raw_data = dataset.get_raw_seq_data(tracker, seq)
+        seq_res = {}
+        for cls in class_list:
+            seq_res[cls] = {}
+            data = dataset.get_preprocessed_seq_data(raw_data, cls)
+            for metric, met_name in zip(metrics_list, metric_names):
+                seq_res[cls][met_name] = metric.eval_sequence(data)
+        return seq_res
