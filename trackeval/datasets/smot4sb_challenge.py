@@ -49,88 +49,20 @@ class SMOT4SBChallenge(MotChallenge2DBox):
 
     def __init__(self, config=None):
         """Initialise dataset, checking that all required files are present"""
-        super().__init__()
+        super().__init__(config)
         # Fill non-given config values with defaults
-        self.config = utils.init_config(config, self.get_default_dataset_config(), self.get_name())
-
-        self.benchmark = self.config['BENCHMARK']
-        gt_set = self.config['BENCHMARK'] + '-' + self.config['SPLIT_TO_EVAL']
-        self.gt_set = gt_set
-        if not self.config['SKIP_SPLIT_FOL']:
-            split_fol = gt_set
-        else:
-            split_fol = ''
-        self.gt_fol = os.path.join(self.config['GT_FOLDER'], split_fol)
-        self.tracker_fol = os.path.join(self.config['TRACKERS_FOLDER'], split_fol)
-        self.should_classes_combine = False
-        self.use_super_categories = False
-        self.data_is_zipped = self.config['INPUT_AS_ZIP']
-        self.do_preproc = self.config['DO_PREPROC']
-
-        self.output_fol = self.config['OUTPUT_FOLDER']
-        if self.output_fol is None:
-            self.output_fol = self.tracker_fol
-
-        self.tracker_sub_fol = self.config['TRACKER_SUB_FOLDER']
-        self.output_sub_fol = self.config['OUTPUT_SUB_FOLDER']
 
         # Get classes to eval
-        self.valid_classes = ['pedestrian']
-        self.class_list = [cls.lower() if cls.lower() in self.valid_classes else None
-                           for cls in self.config['CLASSES_TO_EVAL']]
-        if not all(self.class_list):
-            raise TrackEvalException('Attempted to evaluate an invalid class. Only pedestrian class is valid.')
-        self.class_name_to_class_id = {'pedestrian': 1, 'person_on_vehicle': 2, 'car': 3, 'bicycle': 4, 'motorbike': 5,
-                                       'non_mot_vehicle': 6, 'static_person': 7, 'distractor': 8, 'occluder': 9,
-                                       'occluder_on_ground': 10, 'occluder_full': 11, 'reflection': 12, 'crowd': 13}
-        self.valid_class_numbers = list(self.class_name_to_class_id.values())
+        # self.valid_classes = ['pedestrian']
+        # self.class_list = [cls.lower() if cls.lower() in self.valid_classes else None
+        #                    for cls in self.config['CLASSES_TO_EVAL']]
+        # if not all(self.class_list):
+        #     raise TrackEvalException('Attempted to evaluate an invalid class. Only pedestrian class is valid.')
+        # self.class_name_to_class_id = {'pedestrian': 1, 'person_on_vehicle': 2, 'car': 3, 'bicycle': 4, 'motorbike': 5,
+        #                                'non_mot_vehicle': 6, 'static_person': 7, 'distractor': 8, 'occluder': 9,
+        #                                'occluder_on_ground': 10, 'occluder_full': 11, 'reflection': 12, 'crowd': 13}
+        # self.valid_class_numbers = list(self.class_name_to_class_id.values())
 
-        # Get sequences to eval and check gt files exist
-        self.seq_list, self.seq_lengths = self._get_seq_info()
-        if len(self.seq_list) < 1:
-            raise TrackEvalException('No sequences are selected to be evaluated.')
-
-        # Check gt files exist
-        for seq in self.seq_list:
-            if not self.data_is_zipped:
-                curr_file = self.config["GT_LOC_FORMAT"].format(gt_folder=self.gt_fol, seq=seq)
-                if not os.path.isfile(curr_file):
-                    print('GT file not found ' + curr_file)
-                    raise TrackEvalException('GT file not found for sequence: ' + seq)
-        if self.data_is_zipped:
-            curr_file = os.path.join(self.gt_fol, 'data.zip')
-            if not os.path.isfile(curr_file):
-                print('GT file not found ' + curr_file)
-                raise TrackEvalException('GT file not found: ' + os.path.basename(curr_file))
-
-        # Get trackers to eval
-        if self.config['TRACKERS_TO_EVAL'] is None:
-            self.tracker_list = os.listdir(self.tracker_fol)
-        else:
-            self.tracker_list = self.config['TRACKERS_TO_EVAL']
-
-        if self.config['TRACKER_DISPLAY_NAMES'] is None:
-            self.tracker_to_disp = dict(zip(self.tracker_list, self.tracker_list))
-        elif (self.config['TRACKERS_TO_EVAL'] is not None) and (
-                len(self.config['TRACKER_DISPLAY_NAMES']) == len(self.tracker_list)):
-            self.tracker_to_disp = dict(zip(self.tracker_list, self.config['TRACKER_DISPLAY_NAMES']))
-        else:
-            raise TrackEvalException('List of tracker files and tracker display names do not match.')
-
-        for tracker in self.tracker_list:
-            if self.data_is_zipped:
-                curr_file = os.path.join(self.tracker_fol, tracker, self.tracker_sub_fol + '.zip')
-                if not os.path.isfile(curr_file):
-                    print('Tracker file not found: ' + curr_file)
-                    raise TrackEvalException('Tracker file not found: ' + tracker + '/' + os.path.basename(curr_file))
-            else:
-                for seq in self.seq_list:
-                    curr_file = os.path.join(self.tracker_fol, tracker, self.tracker_sub_fol, seq + '.txt')
-                    if not os.path.isfile(curr_file):
-                        print('Tracker file not found: ' + curr_file)
-                        raise TrackEvalException(
-                            'Tracker file not found: ' + tracker + '/' + self.tracker_sub_fol + '/' + os.path.basename(
-                                curr_file))
         self.use_so_hota = USE_SO_HOTA
         if self.use_so_hota:
             self.S = None  # Dataset-wide normalization factor for DotD
