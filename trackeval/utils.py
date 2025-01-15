@@ -3,7 +3,6 @@ import os
 import csv
 import argparse
 from collections import OrderedDict
-import pandas as pd
 
 
 def init_config(config, default_config, name=None):
@@ -108,32 +107,40 @@ def write_summary_results(summaries, cls, output_folder):
         writer.writerow(values)
 
 def replace_column_names_for_so_hota(cls, output_folder):
-    # Load CSV file
+    # Load and modify CSV file manually
     csv_file = os.path.join(output_folder, cls + '_summary.csv')
-
-    df = pd.read_csv(csv_file)
-    
-    # Rename columns in CSV
-    df.rename(columns={'Dets': 'SO-Dets', 'IDs': 'SO-IDs'}, inplace=True)
-    
-    # Save updated CSV
     updated_csv_file = csv_file.replace(".csv", "_updated.csv")
-    df.to_csv(updated_csv_file, index=False)
+
+    with open(csv_file, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        rows = list(reader)  # Read all rows
+
+    # Modify header row if it contains "Dets" and "IDs"
+    if rows and len(rows[0]) > 1:
+        rows[0] = [col.replace("Dets", "SO-Dets").replace("IDs", "SO-IDs") for col in rows[0]]
+
+    # Save updated CSV
+    with open(updated_csv_file, 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerows(rows)
+    
     print(f"Updated CSV saved as: {updated_csv_file}")
 
-    # Process TXT file
+    # Process TXT file manually
     txt_file = os.path.join(output_folder, cls + '_summary.txt')
-    with open(txt_file, 'r') as file:
+    updated_txt_file = txt_file.replace(".txt", "_updated.txt")
+
+    with open(txt_file, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
     # Replace column names in TXT file (assuming first line contains headers)
-    updated_lines = [lines[0].replace("Dets", "SO-Dets").replace("IDs", "SO-IDs")] + lines[1:]
+    if lines:
+        lines[0] = lines[0].replace("Dets", "SO-Dets").replace("IDs", "SO-IDs")
 
     # Save updated TXT
-    updated_txt_file = txt_file.replace(".txt", "_updated.txt")
-    with open(updated_txt_file, 'w') as file:
-        file.writelines(updated_lines)
-    
+    with open(updated_txt_file, 'w', encoding='utf-8') as file:
+        file.writelines(lines)
+
     print(f"Updated TXT saved as: {updated_txt_file}")
 
 def write_detailed_results(details, cls, output_folder):
