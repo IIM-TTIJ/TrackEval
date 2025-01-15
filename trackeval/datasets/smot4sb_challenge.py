@@ -76,6 +76,7 @@ class SMOT4SBChallenge(MotChallenge2DBox):
                 self.output_sub_fol == "MOT-Challenge-metrics"
             else:
                 self.output_sub_fol += "_MOT-Challenge-metrics"
+        print("[DEBUG]", self.output_sub_fol)
         
     def compute_S_for_dataset(self):
         """Compute the normalization factor S from ground truth bounding boxes across the entire dataset."""

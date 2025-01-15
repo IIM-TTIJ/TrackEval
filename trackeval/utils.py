@@ -114,9 +114,9 @@ def replace_column_names_for_so_hota(cls, output_folder):
         reader = csv.reader(file)
         rows = list(reader)  # Read all rows
 
-    # Modify header row if it contains "Dets" and "IDs"
+    # Modify header row only if it contains exact matches of "Dets" or "IDs"
     if rows and len(rows[0]) > 1:
-        rows[0] = [col.replace("Dets", "SO-Dets").replace("IDs", "SO-IDs") for col in rows[0]]
+        rows[0] = ["SO-Dets" if col == "Dets" else "SO-IDs" if col == "IDs" else col for col in rows[0]]
 
     # Save updated CSV
     with open(csv_file, 'w', newline='', encoding='utf-8') as file:
@@ -133,7 +133,9 @@ def replace_column_names_for_so_hota(cls, output_folder):
 
     # Replace column names in TXT file (assuming first line contains headers)
     if lines:
-        lines[0] = lines[0].replace("Dets", "SO-Dets").replace("IDs", "SO-IDs")
+        words = lines[0].split()  # Split header into words
+        words = ["SO-Dets" if word == "Dets" else "SO-IDs" if word == "IDs" else word for word in words]
+        lines[0] = " ".join(words) + "\n"  # Reconstruct header
 
     # Save updated TXT
     with open(txt_file, 'w', encoding='utf-8') as file:
