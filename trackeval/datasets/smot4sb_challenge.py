@@ -277,7 +277,6 @@ class SMOT4SBChallenge(MotChallenge2DBox):
             raw_data['similarity_scores'] = similarity_scores_iou  # IoU based evaluation
         return raw_data
         
-    @staticmethod
     def _calculate_box_dot_distance(self, bboxes1, bboxes2, box_format='xywh'):
         """Calculates Dot Distance (DotD) between two sets of bounding boxes."""
         if self.S is None:
