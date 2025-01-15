@@ -67,12 +67,12 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         if self.use_so_hota:
             self.S = None  # Dataset-wide normalization factor for DotD
             self.compute_S_for_dataset()  # Caliculate normalization factor S for DotD
-            if self.output_sub_fol == None:
+            if self.output_sub_fol == None or self.output_sub_fol == "":
                 self.output_sub_fol == "SO-HOTA"
             else:
                 self.output_sub_fol += "_SO-HOTA"
         else:
-            if self.output_sub_fol == None:
+            if self.output_sub_fol == None or self.output_sub_fol == "":
                 self.output_sub_fol == "MOT-Challenge-metrics"
             else:
                 self.output_sub_fol += "_MOT-Challenge-metrics"
