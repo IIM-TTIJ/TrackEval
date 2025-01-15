@@ -35,13 +35,13 @@ class SO_HOTA(_BaseMetric):
         # Return result quickly if tracker or gt sequence is empty
         if data['num_tracker_dets'] == 0:
             res['SO-HOTA_FN'] = data['num_gt_dets'] * np.ones((len(self.array_labels)), dtype=np.float64)
-            res['LocA'] = np.ones((len(self.array_labels)), dtype=np.float64)
-            res['LocA(0)'] = 1.0
+            res['SO-LocA'] = np.ones((len(self.array_labels)), dtype=np.float64)
+            res['SO-LocA(0)'] = 1.0
             return res
         if data['num_gt_dets'] == 0:
             res['SO-HOTA_FP'] = data['num_tracker_dets'] * np.ones((len(self.array_labels)), dtype=np.float64)
-            res['LocA'] = np.ones((len(self.array_labels)), dtype=np.float64)
-            res['LocA(0)'] = 1.0
+            res['SO-LocA'] = np.ones((len(self.array_labels)), dtype=np.float64)
+            res['SO-LocA(0)'] = 1.0
             return res
 
         # Variables counting global association
@@ -112,7 +112,7 @@ class SO_HOTA(_BaseMetric):
             res['SO-AssPr'][a] = np.sum(matches_count * ass_pr) / np.maximum(1, res['SO-HOTA_TP'][a])
 
         # Calculate final scores
-        res['LocA'] = np.maximum(1e-10, res['LocA']) / np.maximum(1e-10, res['SO-HOTA_TP'])
+        res['SO-LocA'] = np.maximum(1e-10, res['SO-LocA']) / np.maximum(1e-10, res['SO-HOTA_TP'])
         res = self._compute_final_fields(res)
         return res
 
@@ -121,10 +121,10 @@ class SO_HOTA(_BaseMetric):
         res = {}
         for field in self.integer_array_fields:
             res[field] = self._combine_sum(all_res, field)
-        for field in ['AssRe', 'AssPr', 'AssA']:
+        for field in ['SO-AssRe', 'SO-AssPr', 'SO-AssA']:
             res[field] = self._combine_weighted_av(all_res, field, res, weight_field='SO-HOTA_TP')
-        loca_weighted_sum = sum([all_res[k]['LocA'] * all_res[k]['SO-HOTA_TP'] for k in all_res.keys()])
-        res['LocA'] = np.maximum(1e-10, loca_weighted_sum) / np.maximum(1e-10, res['SO-HOTA_TP'])
+        loca_weighted_sum = sum([all_res[k]['SO-LocA'] * all_res[k]['SO-HOTA_TP'] for k in all_res.keys()])
+        res['SO-LocA'] = np.maximum(1e-10, loca_weighted_sum) / np.maximum(1e-10, res['SO-HOTA_TP'])
         res = self._compute_final_fields(res)
         return res
 
@@ -155,10 +155,10 @@ class SO_HOTA(_BaseMetric):
         res = {}
         for field in self.integer_array_fields:
             res[field] = self._combine_sum(all_res, field)
-        for field in ['AssRe', 'AssPr', 'AssA']:
+        for field in ['SO-AssRe', 'SO-AssPr', 'SO-AssA']:
             res[field] = self._combine_weighted_av(all_res, field, res, weight_field='SO-HOTA_TP')
-        loca_weighted_sum = sum([all_res[k]['LocA'] * all_res[k]['SO-HOTA_TP'] for k in all_res.keys()])
-        res['LocA'] = np.maximum(1e-10, loca_weighted_sum) / np.maximum(1e-10, res['SO-HOTA_TP'])
+        loca_weighted_sum = sum([all_res[k]['SO-LocA'] * all_res[k]['SO-HOTA_TP'] for k in all_res.keys()])
+        res['SO-LocA'] = np.maximum(1e-10, loca_weighted_sum) / np.maximum(1e-10, res['SO-HOTA_TP'])
         res = self._compute_final_fields(res)
         return res
 
@@ -167,15 +167,15 @@ class SO_HOTA(_BaseMetric):
         """Calculate sub-metric ('field') values which only depend on other sub-metric values.
         This function is used both for both per-sequence calculation, and in combining values across sequences.
         """
-        res['DetRe'] = res['SO-HOTA_TP'] / np.maximum(1, res['SO-HOTA_TP'] + res['SO-HOTA_FN'])
-        res['DetPr'] = res['SO-HOTA_TP'] / np.maximum(1, res['SO-HOTA_TP'] + res['SO-HOTA_FP'])
-        res['DetA'] = res['SO-HOTA_TP'] / np.maximum(1, res['SO-HOTA_TP'] + res['SO-HOTA_FN'] + res['SO-HOTA_FP'])
-        res['SO-HOTA'] = np.sqrt(res['DetA'] * res['AssA'])
-        res['OWTA'] = np.sqrt(res['DetRe'] * res['AssA'])
+        res['SO-DetRe'] = res['SO-HOTA_TP'] / np.maximum(1, res['SO-HOTA_TP'] + res['SO-HOTA_FN'])
+        res['SO-DetPr'] = res['SO-HOTA_TP'] / np.maximum(1, res['SO-HOTA_TP'] + res['SO-HOTA_FP'])
+        res['SO-DetA'] = res['SO-HOTA_TP'] / np.maximum(1, res['SO-HOTA_TP'] + res['SO-HOTA_FN'] + res['SO-HOTA_FP'])
+        res['SO-HOTA'] = np.sqrt(res['SO-DetA'] * res['SO-AssA'])
+        res['SO-OWTA'] = np.sqrt(res['SO-DetRe'] * res['SO-AssA'])
 
         res['SO-HOTA(0)'] = res['SO-HOTA'][0]
-        res['LocA(0)'] = res['LocA'][0]
-        res['SO-HOTALocA(0)'] = res['SO-HOTA(0)']*res['LocA(0)']
+        res['SO-LocA(0)'] = res['SO-LocA'][0]
+        res['SO-HOTALocA(0)'] = res['SO-HOTA(0)']*res['SO-LocA(0)']
         return res
 
     def plot_single_tracker_results(self, table_res, tracker, cls, output_folder):
