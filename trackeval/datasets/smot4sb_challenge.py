@@ -52,9 +52,9 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         if config is None:
             config = {}
         self.config = utils.init_config(
-            user_config=config,
+            config=config,
             default_config=self.get_default_dataset_config(),
-            dataset_name=self.get_name()
+            name=self.get_name()
         )
 
         self.data_is_zipped = self.config['INPUT_AS_ZIP']
