@@ -208,121 +208,121 @@ class SMOT4SBChallenge(MotChallenge2DBox):
         self.S = np.sqrt(avg_size)  # Compute S
 
     @_timing.time
-def get_preprocessed_seq_data(self, raw_data, cls):
-    """ Preprocess data for a single sequence for a single class ("bird") ready for evaluation.
-    Inputs:
-         - raw_data: dict containing the data for the sequence already read in by get_raw_seq_data().
-         - cls: the class to be evaluated (should be "bird").
-    Outputs:
-         - data: dict containing all of the information that metrics need to perform evaluation.
-            Fields:
-              [num_timesteps, num_gt_ids, num_tracker_ids, num_gt_dets, num_tracker_dets]: integers.
-              [gt_ids, tracker_ids, tracker_confidences]: list (for each timestep) of 1D NDArrays (for each det).
-              [gt_dets, tracker_dets]: list (for each timestep) of lists of detections.
-              [similarity_scores]: list (for each timestep) of 2D NDArrays.
-    Notes:
-        For this dataset, we assume only "bird" class is valid (class_id=1).
-        Any other class IDs in GT or tracker data will raise an error (if do_preproc=True).
-        
-        The following preprocessing steps are performed:
-            1) Remove GT dets that are zero_marked or not equal to the target class.
-            2) Optionally remove tracker dets that do not match valid GT (if do_preproc=True).
-            3) Relabel IDs so they are contiguous from 0..N-1.
-            4) Ensure ID uniqueness per timestep.
-    """
+    def get_preprocessed_seq_data(self, raw_data, cls):
+        """ Preprocess data for a single sequence for a single class ("bird") ready for evaluation.
+        Inputs:
+            - raw_data: dict containing the data for the sequence already read in by get_raw_seq_data().
+            - cls: the class to be evaluated (should be "bird").
+        Outputs:
+            - data: dict containing all of the information that metrics need to perform evaluation.
+                Fields:
+                [num_timesteps, num_gt_ids, num_tracker_ids, num_gt_dets, num_tracker_dets]: integers.
+                [gt_ids, tracker_ids, tracker_confidences]: list (for each timestep) of 1D NDArrays (for each det).
+                [gt_dets, tracker_dets]: list (for each timestep) of lists of detections.
+                [similarity_scores]: list (for each timestep) of 2D NDArrays.
+        Notes:
+            For this dataset, we assume only "bird" class is valid (class_id=1).
+            Any other class IDs in GT or tracker data will raise an error (if do_preproc=True).
+            
+            The following preprocessing steps are performed:
+                1) Remove GT dets that are zero_marked or not equal to the target class.
+                2) Optionally remove tracker dets that do not match valid GT (if do_preproc=True).
+                3) Relabel IDs so they are contiguous from 0..N-1.
+                4) Ensure ID uniqueness per timestep.
+        """
 
-    # Check that input data has unique ids
-    self._check_unique_ids(raw_data)
+        # Check that input data has unique ids
+        self._check_unique_ids(raw_data)
 
-    # The class id for "bird" (or the class given by cls)
-    cls_id = self.class_name_to_class_id[cls]
+        # The class id for "bird" (or the class given by cls)
+        cls_id = self.class_name_to_class_id[cls]
 
-    data_keys = ['gt_ids', 'tracker_ids', 'gt_dets', 'tracker_dets',
-                 'tracker_confidences', 'similarity_scores']
-    data = {key: [None] * raw_data['num_timesteps'] for key in data_keys}
-    unique_gt_ids = []
-    unique_tracker_ids = []
-    num_gt_dets = 0
-    num_tracker_dets = 0
+        data_keys = ['gt_ids', 'tracker_ids', 'gt_dets', 'tracker_dets',
+                    'tracker_confidences', 'similarity_scores']
+        data = {key: [None] * raw_data['num_timesteps'] for key in data_keys}
+        unique_gt_ids = []
+        unique_tracker_ids = []
+        num_gt_dets = 0
+        num_tracker_dets = 0
 
-    for t in range(raw_data['num_timesteps']):
+        for t in range(raw_data['num_timesteps']):
 
-        # Get all data
-        gt_ids = raw_data['gt_ids'][t]
-        gt_dets = raw_data['gt_dets'][t]
-        gt_classes = raw_data['gt_classes'][t]
-        gt_zero_marked = raw_data['gt_extras'][t]['zero_marked']
+            # Get all data
+            gt_ids = raw_data['gt_ids'][t]
+            gt_dets = raw_data['gt_dets'][t]
+            gt_classes = raw_data['gt_classes'][t]
+            gt_zero_marked = raw_data['gt_extras'][t]['zero_marked']
 
-        tracker_ids = raw_data['tracker_ids'][t]
-        tracker_dets = raw_data['tracker_dets'][t]
-        tracker_classes = raw_data['tracker_classes'][t]
-        tracker_confidences = raw_data['tracker_confidences'][t]
-        similarity_scores = raw_data['similarity_scores'][t]
+            tracker_ids = raw_data['tracker_ids'][t]
+            tracker_dets = raw_data['tracker_dets'][t]
+            tracker_classes = raw_data['tracker_classes'][t]
+            tracker_confidences = raw_data['tracker_confidences'][t]
+            similarity_scores = raw_data['similarity_scores'][t]
 
-        # If tracker outputs any class other than our valid class (cls_id),
-        # raise an error or handle it (we assume only "bird" is valid).
-        if len(tracker_classes) > 0 and not np.all(tracker_classes == cls_id):
-            raise TrackEvalException(
-                f"Evaluation is only valid for class ID={cls_id}. "
-                f"Found non-bird class in seq={raw_data['seq']} at t={t} "
-                f"(tracker_classes={tracker_classes})."
-            )
-
-        # Do we do additional preproc? If so, remove tracker dets matched with invalid GT
-        to_remove_tracker = np.array([], np.int64)
-        if self.do_preproc and gt_ids.shape[0] > 0 and tracker_ids.shape[0] > 0:
-            # Check for invalid GT classes (anything not in self.valid_class_numbers)
-            invalid_classes = np.setdiff1d(np.unique(gt_classes), self.valid_class_numbers)
-            if len(invalid_classes) > 0:
-                # Show which invalid class IDs are found
-                msg_invalid = ' '.join(str(x) for x in invalid_classes)
+            # If tracker outputs any class other than our valid class (cls_id),
+            # raise an error or handle it (we assume only "bird" is valid).
+            if len(tracker_classes) > 0 and not np.all(tracker_classes == cls_id):
                 raise TrackEvalException(
-                    "Attempting to evaluate using invalid gt classes. "
-                    "Please either check your gt data or disable preprocessing. "
-                    f"Invalid classes found in seq={raw_data['seq']} t={t}: {msg_invalid}"
+                    f"Evaluation is only valid for class ID={cls_id}. "
+                    f"Found non-bird class in seq={raw_data['seq']} at t={t} "
+                    f"(tracker_classes={tracker_classes})."
                 )
 
-            # Perform Hungarian matching (on similarity scores) to remove any tracker
-            # dets matched to invalid GT or to be removed. 
-            # [Note] Since we have no "distractor" concept for bird-only dataset,
-            # we won't do a "distractor" removal. 
-            # However, if we wanted to remove GT with zero_marked=0 or non-bird class,
-            # we could do a similar check here. 
-            matching_scores = similarity_scores.copy()
-            # Threshold small similarities to 0
-            matching_scores[matching_scores < 0.5 - np.finfo('float').eps] = 0
-            match_rows, match_cols = linear_sum_assignment(-matching_scores)
-            actually_matched_mask = matching_scores[match_rows, match_cols] > np.finfo('float').eps
-            match_rows = match_rows[actually_matched_mask]
-            match_cols = match_cols[actually_matched_mask]
+            # Do we do additional preproc? If so, remove tracker dets matched with invalid GT
+            to_remove_tracker = np.array([], np.int64)
+            if self.do_preproc and gt_ids.shape[0] > 0 and tracker_ids.shape[0] > 0:
+                # Check for invalid GT classes (anything not in self.valid_class_numbers)
+                invalid_classes = np.setdiff1d(np.unique(gt_classes), self.valid_class_numbers)
+                if len(invalid_classes) > 0:
+                    # Show which invalid class IDs are found
+                    msg_invalid = ' '.join(str(x) for x in invalid_classes)
+                    raise TrackEvalException(
+                        "Attempting to evaluate using invalid gt classes. "
+                        "Please either check your gt data or disable preprocessing. "
+                        f"Invalid classes found in seq={raw_data['seq']} t={t}: {msg_invalid}"
+                    )
 
-            # (Optional) If you needed to remove certain GT => you could define mask here
-            # But for a pure "bird" dataset with no distractors, we skip that.
+                # Perform Hungarian matching (on similarity scores) to remove any tracker
+                # dets matched to invalid GT or to be removed. 
+                # [Note] Since we have no "distractor" concept for bird-only dataset,
+                # we won't do a "distractor" removal. 
+                # However, if we wanted to remove GT with zero_marked=0 or non-bird class,
+                # we could do a similar check here. 
+                matching_scores = similarity_scores.copy()
+                # Threshold small similarities to 0
+                matching_scores[matching_scores < 0.5 - np.finfo('float').eps] = 0
+                match_rows, match_cols = linear_sum_assignment(-matching_scores)
+                actually_matched_mask = matching_scores[match_rows, match_cols] > np.finfo('float').eps
+                match_rows = match_rows[actually_matched_mask]
+                match_cols = match_cols[actually_matched_mask]
 
-            # Example: If you have any GT that you want to treat as "to remove," you could do:
-            # is_to_remove = ...
-            # to_remove_tracker = match_cols[is_to_remove]
+                # (Optional) If you needed to remove certain GT => you could define mask here
+                # But for a pure "bird" dataset with no distractors, we skip that.
 
-            # Since we don't have explicit distractors, we can leave "to_remove_tracker" empty
-            # unless you have other criteria.
+                # Example: If you have any GT that you want to treat as "to remove," you could do:
+                # is_to_remove = ...
+                # to_remove_tracker = match_cols[is_to_remove]
 
-        # Apply preprocessing to remove undesired tracker dets
-        data['tracker_ids'][t] = np.delete(tracker_ids, to_remove_tracker, axis=0)
-        data['tracker_dets'][t] = np.delete(tracker_dets, to_remove_tracker, axis=0)
-        data['tracker_confidences'][t] = np.delete(tracker_confidences, to_remove_tracker, axis=0)
-        similarity_scores = np.delete(similarity_scores, to_remove_tracker, axis=1)
+                # Since we don't have explicit distractors, we can leave "to_remove_tracker" empty
+                # unless you have other criteria.
 
-        # Remove gt detections that are zero_marked or not in the target class
-        gt_to_keep_mask = (gt_zero_marked != 0) & (gt_classes == cls_id)
+            # Apply preprocessing to remove undesired tracker dets
+            data['tracker_ids'][t] = np.delete(tracker_ids, to_remove_tracker, axis=0)
+            data['tracker_dets'][t] = np.delete(tracker_dets, to_remove_tracker, axis=0)
+            data['tracker_confidences'][t] = np.delete(tracker_confidences, to_remove_tracker, axis=0)
+            similarity_scores = np.delete(similarity_scores, to_remove_tracker, axis=1)
 
-        data['gt_ids'][t] = gt_ids[gt_to_keep_mask]
-        data['gt_dets'][t] = gt_dets[gt_to_keep_mask, :]
-        data['similarity_scores'][t] = similarity_scores[gt_to_keep_mask]
+            # Remove gt detections that are zero_marked or not in the target class
+            gt_to_keep_mask = (gt_zero_marked != 0) & (gt_classes == cls_id)
 
-        unique_gt_ids += list(np.unique(data['gt_ids'][t]))
-        unique_tracker_ids += list(np.unique(data['tracker_ids'][t]))
-        num_tracker_dets += len(data['tracker_ids'][t])
-        num_gt_dets += len(data['gt_ids'][t])
+            data['gt_ids'][t] = gt_ids[gt_to_keep_mask]
+            data['gt_dets'][t] = gt_dets[gt_to_keep_mask, :]
+            data['similarity_scores'][t] = similarity_scores[gt_to_keep_mask]
+
+            unique_gt_ids += list(np.unique(data['gt_ids'][t]))
+            unique_tracker_ids += list(np.unique(data['tracker_ids'][t]))
+            num_tracker_dets += len(data['tracker_ids'][t])
+            num_gt_dets += len(data['gt_ids'][t])
 
     # Re-label IDs so there are no empty IDs
     if len(unique_gt_ids) > 0:
