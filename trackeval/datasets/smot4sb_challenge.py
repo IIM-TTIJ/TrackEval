@@ -59,6 +59,8 @@ class SMOT4SBChallenge(MotChallenge2DBox):
 
         self.data_is_zipped = self.config['INPUT_AS_ZIP']
         self.do_preproc = self.config['DO_PREPROC']
+        self.should_classes_combine = False
+        self.use_super_categories = False
 
         # 3) Configure main directory and subfolders
         #  (do not use MOTChallenge specific 'BENCHMARK' or 'SKIP_SPLIT_FOL')
@@ -176,6 +178,7 @@ class SMOT4SBChallenge(MotChallenge2DBox):
             if not os.path.isfile(seqmap_file):
                 print('no seqmap found: ' + seqmap_file)
                 raise TrackEvalException('no seqmap found: ' + os.path.basename(seqmap_file))
+            print(seqmap_file)
             with open(seqmap_file) as fp:
                 reader = csv.reader(fp)
                 for i, row in enumerate(reader):
