@@ -1,8 +1,109 @@
 
 # TrackEval
+
+
+------
+
+## 🔹 SO-HOTA for SMOT4SB (Experimental Feature)
+
+**[NEW]** This repository has been **extended** to include **SO-HOTA**, a novel evaluation metric specifically designed for the **MVA2025 Small Multi-Object Tracking for Spotting Birds Challenge (SMOT4SB)** [1].
+
+This feature is currently **experimental** and **dependent on the SMOT4SB dataset**. Unlike other TrackEval metrics, `so_hota.py` requires `smot4sb_challenge.py` due to the use of **DotD (Dot Distance)** [2] instead of IoU for similarity calculation.
+
+### Newly implemented metrics
+
+The following new metrics have been introduced:
+
+Metric Family | Sub metrics | Paper | Code | Notes |
+|----- | ----------- |----- | ----------- | ----- |
+|**SO-HOTA metrics**|SO-HOTA, SO-DetA, SO-AssA, SO-LocA, SO-DetPr, SO-DetRe, SO-AssPr, SO-AssRe|paper (to be published)|[code](trackeval/metrics/so_hota.py)|The tracking metric used in SMOT4SB Challenge|
+
+### Newly implemented benchmarks
+
+The following new benchmarks have been introduced:
+
+Benchmark | Sub-benchmarks | Type | Website | Code | Data Format |
+|----- | ----------- |----- | ----------- | ----- | ----- |
+|**SOD4SB**| |2D BBox|[website](https://mva-org.jp/mva2025/index.php?id=challenge)|[code](trackeval/datasets/smot4sb_challenge.py)|[format](docs/MOTS-format.txt)|
+
+### Running the code
+
+Below is the script used for evaluation. This section provides an example command to execute the script and the expected input directory structure.
+
+#### 📂 Input Directory Structure
+```
+input 
+├── ref
+│   ├── seqmaps
+│   │   └── train.txt
+│   └── train
+│       ├── 00001
+│       │   ├── gt
+│       │   │   └── gt.txt
+│       │   └── seqinfo.ini
+│       ├── 00002
+│       │   ├── gt
+│       │   │   └── gt.txt
+│       │   └── seqinfo.ini
+│       .
+│       .
+│       .
+│
+├── res
+    └── train
+        └── <tracker name>
+            └── data
+                ├── 00001.txt
+                ├── 00002.txt
+                .
+                .
+                .
+```
+#### 🚀 Running the Evaluation
+To execute the evaluation, use the following command:
+```bash
+python scripts/run_smot4sb_challenge.py input output train --metric-smot4sb (or --metric-mot)
+```
+- `input`: Path to the input directory (as shown in the structure above)
+- `output`: Path to the output directory for storing evaluation results
+- `train`: Subset to be evaluated
+- `--metric-smot4sb`: Use SO-HOTA metrics for SMOT4SB evaluation
+- `--metric-mot`: Use general MOT metrics (HOTA, CLEAR, Identity)
+
+#### 🔗 Script Reference
+The evaluation script can be found at:
+[Evaluation Script](scripts/run_smot4sb_challenge.py)
+
+### 🚀 **Future Plans**:  
+We are actively working with the maintainers of the original [TrackEval repository](https://github.com/JonathonLuiten/TrackEval) to refine this implementation. Once a dataset-agnostic approach is developed, we plan to request an upstream merge.
+
+### **SO-HOTA Citation**:
+  ```bibtex
+  @inproceedings{mva2025_smot4sb_challenge,
+    title={{MVA2025 Small Multi-Object Tracking for Spotting Birds Challenge: Dataset, Methods, and Results}},
+    author={Yuki Kondo and Norimichi Ukita and Riku Kanayama and Yuki Yoshida and Takayuki Yamaguchi and [Challenge winners]},
+    booktitle={2025 19th International Conference on Machine Vision and Applications (MVA)},
+    note={\url{https://www.mva-org.jp/mva2025/challenge}},
+    year={2025}
+  }
+  Note: This paper is scheduled to be published in July 2025, and the title and other details are subject to change.
+  ```
+
+### 🔗 References
+
+[1] [SMOT4SB Challenge Website: MVA2025 Small Multi-Object Tracking for Spotting Birds Challenge](https://mva-org.jp/mva2025/index.php?id=challenge)
+
+[2] C. Xu, J. Wang, W. Yang, and L. Yu, "Dot Distance for Tiny Object Detection in Aerial Images," in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshop (CVPRW), 2021.
+
+---
+
+### ⬇️ The following is the original README content from TrackEval ⬇️
+
+
 *Code for evaluating object tracking.*
 
 This codebase provides code for a number of different tracking evaluation metrics (including the [HOTA metrics](https://link.springer.com/article/10.1007/s11263-020-01375-2)), as well as supporting running all of these metrics on a number of different tracking benchmarks. Plus plotting of results and other things one may want to do for tracking evaluation.
+
 
 ## **NEW**: RobMOTS Challenge 2021
 
