@@ -126,10 +126,6 @@ def run_evaluation(input_dir, output_dir, subset, use_metric_smot4sb, use_metric
 
     print(f'Evaluation completed. Results saved to {scores_file_path}.')
 
-    # Make HTML file
-    tracker = dataset_list[0].tracker_list[0]
-    subprocess.run(["python", "generate_html.py", output_dir, tracker], check=True)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Evaluate tracking metrics using TrackEval.")
