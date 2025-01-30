@@ -1,6 +1,6 @@
-numpy==1.23.5
+numpy==1.12.1
 scipy==1.4.1
-git+https://github.com/cocodataset/cocoapi
+pycocotools==2.0.2
 matplotlib==3.2.1
 opencv_python==4.4.0.46
 scikit_image==0.16.2

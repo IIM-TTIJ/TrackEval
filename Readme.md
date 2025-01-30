@@ -6,9 +6,19 @@
 
 ## 🔹 SO-HOTA for SMOT4SB (Experimental Feature)
 
-**[NEW]** This repository has been **extended** to include **SO-HOTA**, a novel evaluation metric specifically designed for the **MVA2025 Small Multi-Object Tracking for Spotting Birds Challenge (SMOT4SB)** [1].
+**[NEW]** This repository has been **extended** to include **SO-HOTA**, a novel evaluation metric specifically designed for the **MVA2025 Small Multi-Object Tracking for Spotting Birds Challenge (SMOT4SB)** [1]. The baseline code for the challenge is [here](https://github.com/IIM-TTIJ/MVA2025-SMOT4SB).
 
 This feature is currently **experimental** and **dependent on the SMOT4SB dataset**. Unlike other TrackEval metrics, `so_hota.py` requires `smot4sb_challenge.py` due to the use of **DotD (Dot Distance)** [2] instead of IoU for similarity calculation.
+
+### Requirements for SO-HOTA
+
+If you are using this repository independently, please follow the official installation method below.  
+However, if you are using it within [the baseline code](https://github.com/IIM-TTIJ/MVA2025-SMOT4SB) for the challenge, it runs in the environment of [OC-SORT for SMOT4SB](https://github.com/IIM-TTIJ/OC_SORT_for_SMOT4SB), so you can skip the installation process.
+
+
+### Newly implemented metrics
+
+The following new metrics have been introduced:
 
 ### Newly implemented metrics
 
